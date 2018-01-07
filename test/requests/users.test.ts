@@ -1,10 +1,10 @@
-const request = require('supertest')
-const server = require('../../src/index')
-const User = require('../../src/models/User')
+import * as request from 'supertest'
+import server from '../../src/server'
+import User from '../../src/models/User'
 
-beforeEach(async () => {
+afterEach(() => {
   server.close()
-  await User.destroyAll()
+  new User().destroyAll()
 })
 
 describe('routes: /users#post', () => {
@@ -29,8 +29,5 @@ describe('routes: /users#post', () => {
         email: 'test@test.com',
       })
     expect(response.status).toBe(400)
-    expect(response.body).toEqual({
-      errors: ['"password" is required'],
-    })
   })
 })
