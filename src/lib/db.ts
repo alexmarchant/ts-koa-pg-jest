@@ -1,4 +1,4 @@
-import { Client, Query, QueryResult } from 'pg'
+import { Client, QueryResult } from 'pg'
 
 type QueryData = {[key: string]: any}
 
@@ -18,7 +18,7 @@ client.connect()
 
 export { client as Client }
 
-export async function selectRow<T>(tableName: string, data: QueryData): Promise<T> {
+export async function selectRow(tableName: string, data: QueryData): Promise<{[key: string]: string}> {
   const text = `
     SELECT * FROM ${tableName}
     WHERE ${queryKeyVariablePairs(data)}
@@ -28,12 +28,14 @@ export async function selectRow<T>(tableName: string, data: QueryData): Promise<
   return response.rows[0]
 }
 
-export async function insertRow(tableName: string, data: QueryData): Promise<QueryResult> {
+export async function insertRow(tableName: string, data: QueryData): Promise<{[key: string]: string}> {
   const text = `
     INSERT INTO ${tableName}(${queryKeys(data)})
     VALUES(${queryVariables(data)})
+    RETURNING *
   `
-  return client.query(text, queryValues(data))
+  const response = await client.query(text, queryValues(data))
+  return response.rows[0]
 }
 
 function queryKeyVariablePairs(data: QueryData): string {

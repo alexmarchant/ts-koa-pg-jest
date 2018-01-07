@@ -1,33 +1,50 @@
 import * as request from 'supertest'
-import server from '../../src/server'
+import app from '../../src/app'
 import User from '../../src/models/User'
 
 afterEach(() => {
-  server.close()
   new User().destroyAll()
 })
 
+const userProps = {
+  email: 'test@test.com',
+  password: '12345678',
+}
+
 describe('routes: /users#post', () => {
-  test('success', async () => {
+  test('success: creates user', async () => {
     expect.assertions(3)
-    const response = await request(server)
+    const response = await request(app.callback())
       .post('/users')
-      .send({
-        email: 'test@test.com',
-        password: '12345678',
-      })
+      .send(userProps)
     expect(response.status).toBe(201)
-    expect(response.body.id).not.toBeNull()
+    expect(response.body.id).toBeDefined()
     expect(response.body.email).toBe('test@test.com')
   })
 
-  test('fail: missing fields', async () => {
+  test('error: missing fields', async () => {
     expect.assertions(2)
-    const response = await request(server)
+    const response = await request(app.callback())
       .post('/users')
-      .send({
-        email: 'test@test.com',
-      })
+      .send({})
     expect(response.status).toBe(400)
+    expect(response.body.errors).toEqual([
+      '"email" can\'t be blank',
+      '"password" can\'t be blank',
+    ])
+  })
+
+  test('error: duplicate email', async () => {
+    expect.assertions(2)
+    await request(app.callback())
+      .post('/users')
+      .send(userProps)
+    const response = await request(app.callback())
+      .post('/users')
+      .send(userProps)
+    expect(response.status).toBe(400)
+    expect(response.body.errors).toEqual([
+      'An account already exists with that email address',
+    ])
   })
 })

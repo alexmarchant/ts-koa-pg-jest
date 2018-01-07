@@ -1,35 +1,37 @@
-export type Validation = (
-  obj: Validatable,
-  property: string
+export type Validation = <T extends Validatable>(
+  obj: T,
+  property: keyof T
 ) => boolean
 export type Validations = {[property: string]: Validation[]}
 
 export default abstract class Validatable {
-  abstract validations: Validations = <Validations>{}
+  validations: {[property: string]: Validation[]} = {}
   errors: string[] = []
 
   valid(): boolean {
     this.errors = []
-    // Runs all validations and returns false if
-    // if any are false
-    return Object.keys(this.validations)
-      .reduce((valid, property) => {
-        const validationFuncs = this.validations[property]
-        return validationFuncs
-          .reduce((valid, func) => {
-            if (!func(this, property)) {
-              return false
-            }
-          }, valid)
-      }, true)
-  }
+    let valid = true
 
+    // Runs all validations and returns false
+    // if any validation returned false
+    for (let property in this.validations) {
+      let funcs = this.validations[property]
+
+      for (let func of funcs) {
+        if (!func(this, property as keyof this)) {
+          valid = false
+        }
+      }
+    }
+
+    return valid
+  }
 }
 
-export function presence(obj: Validatable, property: string): boolean {
-  let valid = obj.hasOwnProperty(property)
+export function presence<T extends Validatable>(obj: T, property: keyof T): boolean {
+  let valid = obj[property] ? true : false
   if (!valid) {
-    obj.errors.push(`"${property}" can't be null`)
+    obj.errors.push(`"${property}" can't be blank`)
   }
   return valid
 }

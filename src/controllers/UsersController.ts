@@ -20,14 +20,13 @@ const userParams = (params: Params) => {
 
 export async function create(ctx: Koa.Context) {
   const params = userParams(ctx.request.body)
-  console.log(params)
   const user = new User(params)
-  console.log(user)
   if (await user.save()) {
     ctx.status = 201
     ctx.body = user.serialize()
   } else {
     ctx.status = 400
+    ctx.body = {errors: user.errors}
   }
 }
 

@@ -1,5 +1,4 @@
 import * as Koa from 'koa'
-import * as pg from 'pg'
 import * as route from 'koa-route'
 import * as bcrypt from 'bcrypt'
 import Model, { ModelProps } from '../base/Model'
@@ -25,15 +24,22 @@ export default class User extends Model {
 
   async hashPassword(): Promise<boolean> {
     const saltRounds = 12
-    this.hashedPassword = await bcrypt.hash(this.password, saltRounds)
-    return true
+
+    try {
+      const salt = await bcrypt.genSalt(saltRounds)
+      this.hashedPassword = await bcrypt.hash(this.password, salt)
+      return true
+    } catch(err) {
+      console.error(err)
+      return false
+    }
   }
 
   async findByEmail(email: string): Promise<User> {
-    const result = await selectRow<User>(this.tableName, {email: email})
+    const result = await selectRow(this.tableName, {email: email})
     return new User({
-      id: result.id,
-      email: result.email,
+      id: parseInt(result['id']),
+      email: result['email'],
     })
   }
 
@@ -45,11 +51,18 @@ export default class User extends Model {
   })
   tableFields = [
     'id SERIAL',
-    'email TEXT NOT NULL UNIQUE',
-    'hashed_password text NOT NULL',
+    'email VARCHAR(128) NOT NULL UNIQUE',
+    'hashed_password VARCHAR(256) NOT NULL',
   ]
   beforeSave = async () => {
-		await this.hashPassword()
+    await this.hashPassword()
+  }
+  handleQueryError = (err: Error) => {
+    super.handleQueryError(err)
+
+    if (err.message === 'duplicate key value violates unique constraint "users_email_key"') {
+      this.errors.push('An account already exists with that email address')
+    }
   }
 
   // Routable
