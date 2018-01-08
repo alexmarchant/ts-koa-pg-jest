@@ -35,6 +35,13 @@ export default class User extends Model {
     }
   }
 
+  async comparePassword(password: string): Promise<boolean> {
+    if (!this.hashedPassword) {
+      throw new Error('hashedPassword not found on User')
+    }
+    return await bcrypt.compare(password, this.hashedPassword)
+  }
+
   async findByEmail(email: string): Promise<User> {
     const result = await selectRow(this.tableName, {email: email})
     return new User({

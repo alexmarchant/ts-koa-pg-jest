@@ -36,9 +36,7 @@ describe('routes: /users#post', () => {
 
   test('error: duplicate email', async () => {
     expect.assertions(2)
-    await request(app.callback())
-      .post('/users')
-      .send(userProps)
+    new User(userProps).save()
     const response = await request(app.callback())
       .post('/users')
       .send(userProps)
@@ -47,4 +45,30 @@ describe('routes: /users#post', () => {
       'An account already exists with that email address',
     ])
   })
+
+  //test('error: user doesn\'t exist', async () => {
+  //  expect.assertions(2)
+  //  const response = await request(app.callback())
+  //    .post('/users')
+  //    .send(userProps)
+  //  expect(response.status).toBe(400)
+  //  expect(response.body.errors).toEqual([
+  //    'Invalid email or password',
+  //  ])
+  //})
+
+  //test('error: wrong password', async () => {
+  //  expect.assertions(2)
+  //  new User(userProps).save()
+  //  const response = await request(app.callback())
+  //    .post('/users')
+  //    .send({
+  //      ...userProps,
+  //      password: '87654321',
+  //    })
+  //  expect(response.status).toBe(400)
+  //  expect(response.body.errors).toEqual([
+  //    'Invalid email or password',
+  //  ])
+  //})
 })

@@ -1,6 +1,6 @@
 import { Client, QueryResult } from 'pg'
 
-type QueryData = {[key: string]: any}
+export type QueryData = {[key: string]: any}
 
 // Monkey patch in some logging
 // var actualSubmit = Query.prototype.submit

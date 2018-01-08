@@ -5,6 +5,7 @@ import Routable from './Routable'
 import Serializable from './Serializable'
 import Validatable, { Validation } from './Validatable'
 import { applyMixins } from '../lib/applyMixins'
+import { QueryData } from '../lib/db'
 
 // Use this class for mixins then you can override functions
 // in Model (without this you can't override default
@@ -22,6 +23,7 @@ implements Persistable, Routable, Serializable, Validatable
   destroy: () => Promise<boolean>
   destroyAll: () => Promise<pg.QueryResult>
   createTable: () => Promise<pg.QueryResult>
+  findOne: (params: QueryData) => Promise<this>
   beforeSave: () => Promise<void>
   handleQueryError: (err: Error) => void
 
