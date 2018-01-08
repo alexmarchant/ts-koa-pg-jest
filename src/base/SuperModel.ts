@@ -15,8 +15,8 @@ export default abstract class SuperModel
 implements Persistable, Routable, Serializable, Validatable
 {
   // Persistable
-  abstract tableFields: string[]
-  abstract tableName: string
+  static tableFields: string[]
+  static tableName: string
   abstract persistProperties: () => {[property: string]: any}
   id?: number
   save: () => Promise<boolean>
@@ -26,6 +26,7 @@ implements Persistable, Routable, Serializable, Validatable
   findOne: (params: QueryData) => Promise<this>
   beforeSave: () => Promise<void>
   handleQueryError: (err: Error) => void
+  'constructor': typeof SuperModel
 
   // Routable
   routes: (app: Koa) => void

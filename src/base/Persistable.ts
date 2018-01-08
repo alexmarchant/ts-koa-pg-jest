@@ -8,21 +8,22 @@ import {
 import { applyMixins } from '../lib/applyMixins'
 
 export default abstract class Persistable implements Validatable {
-  abstract tableFields: string[]
-  abstract tableName: string
+  static tableFields: string[]
+  static tableName: string
   abstract persistProperties(): {[property: string]: any}
   id?: number
+  'constructor': typeof Persistable
 
   async findOne(params: QueryData): Promise<Persistable> {
-    const result = await selectRow(this.tableName, params)
-    return this.constructor(result)
+    const result = await selectRow(this.constructor.tableName, params)
+    return new (this.constructor as any)(result)
   }
 
   async save(): Promise<boolean> {
     if (!this.valid()) { return false }
     await this.beforeSave()
     try {
-      const result = await insertRow(this.tableName, this.persistProperties())
+      const result = await insertRow(this.constructor.tableName, this.persistProperties())
       this.id = parseInt(result['id'])
       return true
     } catch(err) {
@@ -32,11 +33,11 @@ export default abstract class Persistable implements Validatable {
   }
 
   async destroy(): Promise<boolean> {
-    if (typeof this.id !== 'number') {
+    if (!this.id && typeof this.id !== 'number') {
       throw new Error('id can\'t be blank')
     }
     try {
-      await deleteRow(this.tableName, this.id)
+      await deleteRow(this.constructor.tableName, {id: this.id})
       return true
     } catch(err) {
       this.handleQueryError(err)

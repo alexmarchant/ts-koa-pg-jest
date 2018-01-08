@@ -43,7 +43,7 @@ export default class User extends Model {
   }
 
   async findByEmail(email: string): Promise<User> {
-    const result = await selectRow(this.tableName, {email: email})
+    const result = await selectRow(this.constructor.tableName, {email: email})
     return new User({
       id: parseInt(result['id']),
       email: result['email'],
@@ -51,16 +51,16 @@ export default class User extends Model {
   }
 
   // Persistable
-  tableName = 'users'
-  persistProperties = () => ({
-    email: this.email,
-    hashedPassword: this.hashedPassword,
-  })
-  tableFields = [
+  static tableName = 'users'
+  static tableFields = [
     'id SERIAL',
     'email VARCHAR(128) NOT NULL UNIQUE',
     'hashed_password VARCHAR(256) NOT NULL',
   ]
+  persistProperties = () => ({
+    email: this.email,
+    hashedPassword: this.hashedPassword,
+  })
   beforeSave = async () => {
     await this.hashPassword()
   }

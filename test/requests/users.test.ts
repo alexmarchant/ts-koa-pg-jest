@@ -1,9 +1,10 @@
 import * as request from 'supertest'
 import app from '../../src/app'
 import User from '../../src/models/User'
+import { deleteAllRows } from '../../src/lib/db'
 
 afterEach(() => {
-  new User().destroyAll()
+  deleteAllRows(User.tableName)
 })
 
 const userProps = {

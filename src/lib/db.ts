@@ -38,6 +38,29 @@ export async function insertRow(tableName: string, data: QueryData): Promise<{[k
   return response.rows[0]
 }
 
+export async function deleteRow(tableName: string, data: QueryData): Promise<QueryResult> {
+  const text = `
+    DELETE FROM ${tableName}
+    WHERE ${queryKeyVariablePairs(data)}
+  `
+  return client.query(text, queryValues(data))
+}
+
+export async function deleteAllRows(tableName: string): Promise<QueryResult> {
+  return client.query(`
+    DELETE FROM ${tableName}
+  `)
+}
+
+export async function createTable(tableName: string, tableFields: string[]): Promise<QueryResult> {
+  const queryTableFields = tableFields.join(', ')
+  return client.query(`
+    CREATE TABLE IF NOT EXISTS ${tableName} (
+      ${queryTableFields}
+    )
+  `)
+}
+
 function queryKeyVariablePairs(data: QueryData): string {
   return Object.keys(data)
     .map((key, index) => `${key}=${index}`)
@@ -61,25 +84,3 @@ function queryValues(data: QueryData): any[] {
     .map(key => data[key])
 }
 
-export async function deleteRow(tableName: string, id: number): Promise<QueryResult> {
-  const text = `
-    DELETE FROM ${tableName}
-    WHERE id=$1
-  `
-  return client.query(text, [id])
-}
-
-export async function deleteAllRows(tableName: string): Promise<QueryResult> {
-  return client.query(`
-    DELETE FROM ${tableName}
-  `)
-}
-
-export async function createTable(tableName: string, tableFields: string[]): Promise<QueryResult> {
-  const queryTableFields = tableFields.join(', ')
-  return client.query(`
-    CREATE TABLE IF NOT EXISTS ${tableName} (
-      ${queryTableFields}
-    )
-  `)
-}
