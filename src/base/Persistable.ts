@@ -14,9 +14,13 @@ export default abstract class Persistable implements Validatable {
   id?: number
   'constructor': typeof Persistable
 
-  async findOne(params: QueryData): Promise<Persistable> {
-    const result = await selectRow(this.constructor.tableName, params)
-    return new (this.constructor as any)(result)
+  static async findOne(params: QueryData): Promise<Persistable | false> {
+    const result = await selectRow(this.tableName, params)
+    if (result) {
+      return new (this.constructor as any)(result)
+    } else {
+      return false
+    }
   }
 
   async save(): Promise<boolean> {
@@ -24,8 +28,12 @@ export default abstract class Persistable implements Validatable {
     await this.beforeSave()
     try {
       const result = await insertRow(this.constructor.tableName, this.persistProperties())
-      this.id = parseInt(result['id'])
-      return true
+      if (result) {
+        this.id = parseInt(result['id'])
+        return true
+      } else {
+        return false
+      }
     } catch(err) {
       this.handleQueryError(err)
       return false
@@ -59,4 +67,5 @@ export default abstract class Persistable implements Validatable {
   valid: () => boolean
 }
 applyMixins(Persistable, [Validatable])
+
 

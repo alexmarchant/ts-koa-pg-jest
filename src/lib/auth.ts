@@ -10,7 +10,7 @@ const options = {
 passport.use(new LocalStrategy(options,
   async (email, password, done) => {
     try {
-      const user = await new User().findOne({email: email})
+      const user = await User.findOne({email: email})
       if (user && await user.comparePassword(password)) {
         done(null, user)
       } else {
@@ -25,7 +25,7 @@ passport.use(new LocalStrategy(options,
 passport.use(new BearerStrategy(
   async (token, done) => {
     try {
-      const user = await new User().findOne({token: token})
+      const user = await User.findOne({token: token})
       if (user) {
         done(null, user, {message: '', scope: 'all'})
       } else {

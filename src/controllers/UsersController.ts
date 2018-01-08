@@ -1,26 +1,20 @@
 import * as Koa from 'koa'
+import * as route from 'koa-route'
 import User from '../models/User'
-
-type Params = {[key: string]: any}
+import params from '../lib/params'
 
 const permittedParams = [
   'email',
   'password',
 ]
 
-const userParams = (params: Params) => {
-  debugger
-  return Object.keys(params)
-    .filter(key => permittedParams.includes(key))
-    .reduce((obj, key) => {
-      obj[key] = params[key]
-      return obj
-    }, <Params>{})
+export function routes(app: Koa) {
+  app.use(route.post('/users', create))
 }
 
 export async function create(ctx: Koa.Context) {
-  const params = userParams(ctx.request.body)
-  const user = new User(params)
+  const userParams = params(ctx.request.body).permit(permittedParams)
+  const user = new User(userParams)
   if (await user.save()) {
     ctx.status = 201
     ctx.body = user.serialize()
@@ -29,4 +23,3 @@ export async function create(ctx: Koa.Context) {
     ctx.body = {errors: user.errors}
   }
 }
-

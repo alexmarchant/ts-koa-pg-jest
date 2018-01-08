@@ -18,24 +18,34 @@ client.connect()
 
 export { client as Client }
 
-export async function selectRow(tableName: string, data: QueryData): Promise<{[key: string]: string}> {
+export async function selectRow(tableName: string, data: QueryData): Promise<{[key: string]: string} | false> {
   const text = `
     SELECT * FROM ${tableName}
     WHERE ${queryKeyVariablePairs(data)}
     LIMIT 1
   `
-  const response = await client.query(text, queryValues(data))
-  return response.rows[0]
+  const result = await client.query(text, queryValues(data))
+  if (result.rows.length > 0) {
+    camelCaseResultKeys(result)
+    return result.rows[0]
+  } else {
+    return false
+  }
 }
 
-export async function insertRow(tableName: string, data: QueryData): Promise<{[key: string]: string}> {
+export async function insertRow(tableName: string, data: QueryData): Promise<{[key: string]: string} | false> {
   const text = `
     INSERT INTO ${tableName}(${queryKeys(data)})
     VALUES(${queryVariables(data)})
     RETURNING *
   `
-  const response = await client.query(text, queryValues(data))
-  return response.rows[0]
+  const result = await client.query(text, queryValues(data))
+  if (result.rows.length > 0) {
+    camelCaseResultKeys(result)
+    return result.rows[0]
+  } else {
+    return false
+  }
 }
 
 export async function deleteRow(tableName: string, data: QueryData): Promise<QueryResult> {
@@ -63,7 +73,7 @@ export async function createTable(tableName: string, tableFields: string[]): Pro
 
 function queryKeyVariablePairs(data: QueryData): string {
   return Object.keys(data)
-    .map((key, index) => `${key}=${index}`)
+    .map((key, index) => `${key}=$${index + 1}`)
     .join(' ')
 }
 
@@ -82,5 +92,17 @@ function queryVariables(data: QueryData): string {
 function queryValues(data: QueryData): any[] {
   return Object.keys(data)
     .map(key => data[key])
+}
+
+function camelCaseResultKeys(result: QueryResult) {
+  result.rows.forEach((row) => {
+    Object.keys(row).forEach(key => {
+      let camelKey = key.toCamel()
+      if (key !== camelKey) {
+        row[camelKey] = row[key]
+        delete row[key]
+      }
+    })
+  })
 }
 

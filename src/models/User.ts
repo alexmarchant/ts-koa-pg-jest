@@ -1,17 +1,16 @@
-import * as Koa from 'koa'
-import * as route from 'koa-route'
 import * as bcrypt from 'bcrypt'
 import Model, { ModelProps } from '../base/Model'
-import * as UsersController from '../controllers/UsersController'
-import { selectRow } from '../lib/db'
 import { presence } from '../base/Validatable'
+import { QueryData } from '../lib/db'
 
 interface UserProps extends ModelProps {
   email?: string
   password?: string
+  hashedPassword?: string
 }
 
 export default class User extends Model {
+  static findOne: (params: QueryData) => Promise<User | false>
   email?: string
   password?: string
   hashedPassword?: string
@@ -20,6 +19,7 @@ export default class User extends Model {
     super(props)
     this.email = props.email
     this.password = props.password
+    this.hashedPassword = props.hashedPassword
   }
 
   async hashPassword(): Promise<boolean> {
@@ -42,14 +42,6 @@ export default class User extends Model {
     return await bcrypt.compare(password, this.hashedPassword)
   }
 
-  async findByEmail(email: string): Promise<User> {
-    const result = await selectRow(this.constructor.tableName, {email: email})
-    return new User({
-      id: parseInt(result['id']),
-      email: result['email'],
-    })
-  }
-
   // Persistable
   static tableName = 'users'
   static tableFields = [
@@ -70,11 +62,6 @@ export default class User extends Model {
     if (err.message === 'duplicate key value violates unique constraint "users_email_key"') {
       this.errors.push('An account already exists with that email address')
     }
-  }
-
-  // Routable
-  routes = (app: Koa) => {
-    app.use(route.post('/users', UsersController.create))
   }
 
   // Serializable

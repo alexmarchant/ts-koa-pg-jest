@@ -8,42 +8,49 @@ const props = {
   password: '12345678',
 }
 
-afterEach(async () => {
+beforeAll(async () => {
+  await new User(props).save()
+})
+
+afterAll(async () => {
   await deleteAllRows(User.tableName)
 })
 
-describe('routes: /users#post', () => {
-  test('success: responds with user', async () => {
-    expect.assertions(3)
-    const response = await request(app.callback())
-      .post('/users')
-      .send(props)
-    expect(response.status).toBe(201)
-    expect(response.body.id).toBeDefined()
-    expect(response.body.email).toBe('test@test.com')
-  })
-
-  test('error: missing fields', async () => {
+describe('routes: /tokens#post', () => {
+  test('success: responds with token', async () => {
     expect.assertions(2)
     const response = await request(app.callback())
-      .post('/users')
-      .send({})
+      .post('/tokens')
+      .send(props)
+    expect(response.status).toBe(201)
+    expect(response.body.token).toBeDefined()
+  })
+
+  test('error: user doesn\'t exist', async () => {
+    expect.assertions(2)
+    const response = await request(app.callback())
+      .post('/tokens')
+      .send({
+        ...props,
+        email: 'testfail@test.com',
+      })
     expect(response.status).toBe(400)
     expect(response.body.errors).toEqual([
-      '"email" can\'t be blank',
-      '"password" can\'t be blank',
+      'Invalid email or password',
     ])
   })
 
-  test('error: duplicate email', async () => {
+  test('error: wrong password', async () => {
     expect.assertions(2)
-    await new User(props).save()
     const response = await request(app.callback())
-      .post('/users')
-      .send(props)
+      .post('/tokens')
+      .send({
+        ...props,
+        password: '87654321',
+      })
     expect(response.status).toBe(400)
     expect(response.body.errors).toEqual([
-      'An account already exists with that email address',
+      'Invalid email or password',
     ])
   })
 })

@@ -2,14 +2,10 @@ import 'dotenv/config'
 import * as Koa from 'koa'
 import * as passport from 'koa-passport'
 import * as bodyParser from 'koa-bodyparser'
-
-import User from './models/User'
-
-// Setup auth
-import './lib/auth'
-
-// Setup some string extensions
+import * as UsersController from './controllers/UsersController'
+import * as TokensController from './controllers/TokensController'
 import './lib/String'
+import './lib/auth'
 
 // Create server
 const app = new Koa()
@@ -20,7 +16,8 @@ app.use(bodyParser())
 // Auth
 app.use(passport.initialize())
 
-// Let models setup their own routes
-new User().routes(app)
+// Let controllers setup their own routes
+UsersController.routes(app)
+TokensController.routes(app)
 
 export default app
