@@ -1,10 +1,7 @@
-import * as pg from 'pg'
 import Validatable, { Validation } from './Validatable'
 import {
   insertRow,
   deleteRow,
-  deleteAllRows,
-  createTable,
   selectRow,
   QueryData
 } from '../lib/db'
@@ -16,20 +13,7 @@ export default abstract class Persistable implements Validatable {
   abstract persistProperties(): {[property: string]: any}
   id?: number
 
-  // Fake class methods
-  // look into maybe moving these out of the class
-
-  async destroyAll(): Promise<pg.QueryResult> {
-    return await deleteAllRows(this.tableName)
-  }
-
-  async createTable(): Promise<pg.QueryResult> {
-    return await createTable(this.tableName, this.tableFields)
-  }
-
-  // Instance methods
-  
-  async findOne(params: QueryData): Promise<this> {
+  async findOne(params: QueryData): Promise<Persistable> {
     const result = await selectRow(this.tableName, params)
     return this.constructor(result)
   }
@@ -74,3 +58,4 @@ export default abstract class Persistable implements Validatable {
   valid: () => boolean
 }
 applyMixins(Persistable, [Validatable])
+

@@ -7,7 +7,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
     "sourceMap": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "experimentalDecorators": true
   },
   "exclude": [
     "node_modules",
