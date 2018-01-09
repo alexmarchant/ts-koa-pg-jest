@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "start": "nodemon",
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "build": "tsc",
+    "serve": "ts-node src/server.ts"
   },
   "dependencies": {
     "bcrypt": "^1.0.3",

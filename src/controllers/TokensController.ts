@@ -9,7 +9,7 @@ export function routes(app: Koa) {
 export async function create(ctx: Koa.Context, next: () => Promise<any>) {
   const middleware = passport.authenticate(
     'local', 
-    function(err, user, info, status) {
+    async function(err, user, info, status) {
       if (err) {
         console.error(err)
         ctx.status = 500
@@ -17,8 +17,16 @@ export async function create(ctx: Koa.Context, next: () => Promise<any>) {
       }
 
       if (user) {
+        if (!user.token) {
+          await user.generateToken()
+          if (!await user.save()) {
+            console.error('Error saving token')
+            ctx.status = 500
+            return
+          }
+        }
         ctx.status = 201
-        ctx.body = {token: '12345678'}
+        ctx.body = {token: user.token}
       } else {
         ctx.status = 400
         ctx.body = {errors: ['Invalid email or password']}

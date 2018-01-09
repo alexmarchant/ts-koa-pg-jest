@@ -2,6 +2,7 @@ import * as passport from 'koa-passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 import { Strategy as BearerStrategy } from 'passport-http-bearer'
 import User from '../models/User'
+import * as ModelStorage from '../model/ModelStorage'
 
 const options = {
   usernameField: 'email',
@@ -10,7 +11,7 @@ const options = {
 passport.use(new LocalStrategy(options,
   async (email, password, done) => {
     try {
-      const user = await User.findOne({email: email})
+      const user = await ModelStorage.findOne(User, {email: email})
       if (user && await user.comparePassword(password)) {
         done(null, user)
       } else {
@@ -25,7 +26,7 @@ passport.use(new LocalStrategy(options,
 passport.use(new BearerStrategy(
   async (token, done) => {
     try {
-      const user = await User.findOne({token: token})
+      const user = await ModelStorage.findOne(User, {token: token})
       if (user) {
         done(null, user, {message: '', scope: 'all'})
       } else {

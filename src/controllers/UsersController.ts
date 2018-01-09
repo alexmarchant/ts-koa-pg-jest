@@ -13,8 +13,8 @@ export function routes(app: Koa) {
 }
 
 export async function create(ctx: Koa.Context) {
-  const userParams = params(ctx.request.body).permit(permittedParams)
-  const user = new User(userParams)
+  const props = params(ctx.request.body).permit(permittedParams)
+  const user = new User(props)
   if (await user.save()) {
     ctx.status = 201
     ctx.body = user.serialize()

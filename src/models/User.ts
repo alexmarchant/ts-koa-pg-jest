@@ -1,28 +1,60 @@
 import * as bcrypt from 'bcrypt'
-import Model, { ModelProps } from '../base/Model'
-import { presence } from '../base/Validatable'
-import { QueryData } from '../lib/db'
+import * as crypto from 'crypto'
+import Model, { ModelProps } from '../model/Model'
+import { presence } from '../model/ModelValidations'
 
 interface UserProps extends ModelProps {
   email?: string
   password?: string
   hashedPassword?: string
+  token?: string
 }
 
-export default class User extends Model {
-  static findOne: (params: QueryData) => Promise<User | false>
+export default class User extends Model implements UserProps{
+  static tableName = 'users'
+  static tableFields = [
+    'id SERIAL',
+    'email VARCHAR(128) NOT NULL UNIQUE',
+    'hashed_password VARCHAR(256) NOT NULL',
+    'token VARCHAR(40)',
+  ]
   email?: string
   password?: string
   hashedPassword?: string
+  token?: string
+  validations = {
+    email: {
+      save: [presence],
+      create: [presence],
+    },
+    password: {
+      create: [presence],
+    },
+  }
 
-  constructor(props: UserProps = {}) {
+  constructor(props: Partial<UserProps> = {}) {
     super(props)
     this.email = props.email
     this.password = props.password
     this.hashedPassword = props.hashedPassword
+    this.token = props.token
+  }
+
+  async generateToken(): Promise<{}> {
+    const byteSize = 20
+    let user = this
+    return new Promise((resolve, reject) => {
+      crypto.randomBytes(byteSize, (err, buf) => {
+        if (err) { reject(err) }
+        const token = buf.toString('hex')
+        user.token = token
+        resolve()
+      })
+    })
   }
 
   async hashPassword(): Promise<boolean> {
+    if (!this.password) { throw new Error('"password" can\'t be empty') }
     const saltRounds = 12
 
     try {
@@ -42,21 +74,19 @@ export default class User extends Model {
     return await bcrypt.compare(password, this.hashedPassword)
   }
 
-  // Persistable
-  static tableName = 'users'
-  static tableFields = [
-    'id SERIAL',
-    'email VARCHAR(128) NOT NULL UNIQUE',
-    'hashed_password VARCHAR(256) NOT NULL',
-  ]
-  persistProperties = () => ({
-    email: this.email,
-    hashedPassword: this.hashedPassword,
-  })
-  beforeSave = async () => {
+  persistProperties(): UserProps {
+    return {
+      email: this.email,
+      hashedPassword: this.hashedPassword,
+      token: this.token,
+    }
+  }
+
+  async beforeCreate(): Promise<void> {
     await this.hashPassword()
   }
-  handleQueryError = (err: Error) => {
+
+  handleQueryError(err: Error): void {
     super.handleQueryError(err)
 
     if (err.message === 'duplicate key value violates unique constraint "users_email_key"') {
@@ -64,15 +94,10 @@ export default class User extends Model {
     }
   }
 
-  // Serializable
-  serialize = () => ({
-    id: this.id,
-    email: this.email,
-  })
-
-  // Validatable
-  validations = {
-    email: [presence],
-    password: [presence],
+  serialize(): object {
+    return {
+      id: this.id,
+      email: this.email,
+    }
   }
 }
