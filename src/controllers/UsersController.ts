@@ -14,7 +14,7 @@ export function routes(app: Koa) {
   app.use(route.get('/users/current', read))
 }
 
-export async function create(ctx: Koa.Context) {
+async function create(ctx: Koa.Context) {
   const props = params(ctx.request.body).permit(permittedParams)
   const user = new User(props)
   if (await user.save()) {
@@ -26,7 +26,7 @@ export async function create(ctx: Koa.Context) {
   }
 }
 
-export async function read(ctx: Koa.Context, next: () => Promise<any>) {
+async function read(ctx: Koa.Context, next: () => Promise<any>) {
   await tokenAuthenticate(ctx, next, async (ctx, user) => {
     ctx.status = 200
     ctx.body = user.serialize()

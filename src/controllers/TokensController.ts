@@ -6,7 +6,7 @@ export function routes(app: Koa) {
   app.use(route.post('/tokens', create))
 }
 
-export async function create(ctx: Koa.Context, next: () => Promise<any>) {
+async function create(ctx: Koa.Context, next: () => Promise<any>) {
   await passwordAuthenticate(ctx, next, async (ctx, user) => {
     if (!user.token) {
       await user.generateToken()

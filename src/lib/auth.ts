@@ -39,7 +39,11 @@ passport.use(new BearerStrategy(
   }
 ))
 
-export async function passwordAuthenticate(ctx: Koa.Context, next: () => Promise<any>, cb: (ctx: Koa.Context, user: User, err?: Error, info?: string, status?: number) => Promise<any>) {
+export async function passwordAuthenticate(
+  ctx: Koa.Context,
+  next: () => Promise<any>,
+  cb: (ctx: Koa.Context, user: User, err?: Error, info?: string, status?: number) => Promise<any>
+) {
   await passport.authenticate(
     'local', 
     async (err, user, info, status) => {
@@ -57,7 +61,11 @@ export async function passwordAuthenticate(ctx: Koa.Context, next: () => Promise
   )(ctx, next)
 }
 
-export async function tokenAuthenticate(ctx: Koa.Context, next: () => Promise<any>, cb: (ctx: Koa.Context, user: User, err?: Error, info?: string, status?: number) => Promise<any>) {
+export async function tokenAuthenticate(
+  ctx: Koa.Context,
+  next: () => Promise<any>,
+  cb: (ctx: Koa.Context, user: User, err?: Error, info?: string, status?: number) => Promise<any>
+) {
   await passport.authenticate(
     'bearer', 
     async (err, user, info, status) => {
