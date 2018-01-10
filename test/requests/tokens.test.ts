@@ -34,7 +34,7 @@ describe('routes: /tokens#post', () => {
         ...props,
         email: 'testfail@test.com',
       })
-    expect(response.status).toBe(400)
+    expect(response.status).toBe(401)
     expect(response.body.errors).toEqual([
       'Invalid email or password',
     ])
@@ -48,7 +48,7 @@ describe('routes: /tokens#post', () => {
         ...props,
         password: '87654321',
       })
-    expect(response.status).toBe(400)
+    expect(response.status).toBe(401)
     expect(response.body.errors).toEqual([
       'Invalid email or password',
     ])

@@ -47,3 +47,33 @@ describe('routes: /users#post', () => {
     ])
   })
 })
+
+describe('routes: /users/current#get', () => {
+  test('success: responds with user', async () => {
+    expect.assertions(3)
+    const user = await new User(props)
+    await user.generateToken()
+    await user.save()
+    const response = await request(app.callback())
+      .get('/users/current')
+      .set('Authorization', `Bearer ${user.token}`)
+    expect(response.status).toBe(200)
+    expect(response.body.id).toBeDefined()
+    expect(response.body.email).toBe('test@test.com')
+  })
+
+  test('error: auth', async () => {
+    expect.assertions(2)
+    const user = await new User(props)
+    await user.generateToken()
+    await user.save()
+    const response = await request(app.callback())
+      .get('/users/current')
+      .set('Authorization', `Bearer 12345678`)
+    expect(response.status).toBe(401)
+    expect(response.body.errors).toEqual([
+      'Bad authentication data',
+    ])
+  })
+})
+
